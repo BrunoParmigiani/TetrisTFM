@@ -1,5 +1,7 @@
 tfm.exec.addPhysicObject(-1, 106, 200, {type = 12, width = 213, height = 400, color = 0x000})
 
+map = [[<C><P MEDATA=";;;;-0;0:::1-"/><Z><S><S T="14" X="-5" Y="200" L="10" H="400" P="0,0,0.3,0.2,0,0,0,0" c="3"/><S T="14" X="805" Y="200" L="10" H="400" P="0,0,0.3,0.2,0,0,0,0" c="3"/><S T="14" X="400" Y="-5" L="820" H="10" P="0,0,0.3,0.2,0,0,0,0" c="3"/><S T="16" X="400" Y="387" L="800" H="26" P="0,0,0.3,0.2,0,0,0,0"/></S><D/><O/><L/></Z></C>]]
+
 keys = {
 	left = 0,
 	down = 3,
@@ -230,7 +232,6 @@ colors = {
 	[" "] = 0xFFFFFF
 }
 
-
 function selectBlock()
 	local blocks = {"T", "O", "I", "S", "Z", "L", "J"}
 	local i = math.random(1, #blocks)
@@ -245,6 +246,21 @@ function placeBlock()
 				table.remove(grid[line + r], i + c)
 				table.insert(grid[line + r], i + c, string.lower(block))
 			end
+		end
+	end
+
+	for line, row in next, grid do
+		local occupiedSlots = 0
+
+		for i, v in next, row do
+			if v ~= " " then
+				occupiedSlots = occupiedSlots + 1
+			end
+		end
+
+		if occupiedSlots == 10 then
+			table.remove(grid, line)
+			table.insert(grid, 1, {" ", " ", " ", " ", " ", " ", " ", " ", " ", " "})
 		end
 	end
 end
@@ -272,7 +288,7 @@ function render()
 		end
 	end
 
-	config = {
+	local config = {
 		x = 11,
 		y = 11,
 		type = 12,
@@ -281,10 +297,12 @@ function render()
 		color = 0xFFFFFF
 	}
 
-	id = 0
+	local id = 0
 
 	for i, row in next, grid do
 		for j, v in next, row do
+			tfm.exec.removePhysicObject(id)
+
 			config.color = colors[v]
 
 			tfm.exec.addPhysicObject(
@@ -332,10 +350,13 @@ function eventKeyboard(p, key, down, posX, posY)
 	end
 
 	if key == keys["place"] then
+		placeBlock()
 		selectBlock()
 
 		r = 0
 		c = 3
+		orientation = 1
+
 		block = selectBlock()
 
 		render()
